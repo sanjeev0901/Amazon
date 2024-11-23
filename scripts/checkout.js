@@ -1,7 +1,8 @@
 import { products } from "../data/products.js";
-import { cart as cartItems } from "./cart.js";
+import { cart as cartItems, deleteItems } from "./cart.js";
 
-const getProduct = (id) => {
+const getProduct = (productInCart) => {
+  const { id, quantity } = productInCart;
   let matchingItem = null;
   for (const item of products) {
     if (item.id == id) {
@@ -9,14 +10,14 @@ const getProduct = (id) => {
       break; // Exit the loop early
     }
   }
+  matchingItem.quantity = quantity;
   return matchingItem;
 };
 
 function renderCart() {
   let cartHTML = "";
   cartItems.forEach((item) => {
-    const product = getProduct(item.id);
-    const { quantity } = item;
+    const { id, name, quantity, image, priceCents } = getProduct(item);
     const html = /*HTML*/ `
       <div class="cart-item-container">
           <div class="delivery-date">Delivery date: Tuesday, June 21</div>
@@ -24,24 +25,22 @@ function renderCart() {
           <div class="cart-item-details-grid">
               <img
               class="product-image"
-              src="${product.image}"
+              src="${image}"
               />
 
               <div class="cart-item-details">
               <div class="product-name">
-                  ${product.name}
+                  ${name}
               </div>
-              <div class="product-price">${(product.priceCents / 100).toFixed(
-                2
-              )}</div>
+              <div class="product-price">${(priceCents / 100).toFixed(2)}</div>
               <div class="product-quantity">
                   <span> Quantity: <span class="quantity-label">${quantity}</span> </span>
                   <span class="update-quantity-link link-primary">
                   Update
                   </span>
-                  <span class="delete-quantity-link link-primary">
+                  <button class="delete-quantity-link link-primary js-delete-button" data-product-id=${id}>
                   Delete
-                  </span>
+                  </button>
               </div>
               </div>
 
@@ -54,7 +53,7 @@ function renderCart() {
                   type="radio"
                   checked
                   class="delivery-option-input"
-                  name="delivery-option-${product.id}"
+                  name="delivery-option-${id}"
                   />
                   <div>
                   <div class="delivery-option-date">Tuesday, June 21</div>
@@ -65,7 +64,7 @@ function renderCart() {
                   <input
                   type="radio"
                   class="delivery-option-input"
-                  name="delivery-option-${product.id}"
+                  name="delivery-option-${id}"
                   />
                   <div>
                   <div class="delivery-option-date">Wednesday, June 15</div>
@@ -76,7 +75,7 @@ function renderCart() {
                   <input
                   type="radio"
                   class="delivery-option-input"
-                  name="delivery-option-${product.id}"
+                  name="delivery-option-${id}"
                   />
                   <div>
                   <div class="delivery-option-date">Monday, June 13</div>
@@ -90,5 +89,12 @@ function renderCart() {
     cartHTML += html;
   });
   document.querySelector(".order-summary").innerHTML = cartHTML;
+  document.querySelectorAll(".js-delete-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      deleteItems(button);
+      renderCart();
+    });
+  });
 }
+
 renderCart();
